@@ -1,0 +1,12 @@
+name: Acceptance Tests and Deployment Workflow
+
+on:
+  push:
+    branches: [push]
+
+jobs:
+  deploy-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Say Hello
+        run: echo "The workflow is working!"
