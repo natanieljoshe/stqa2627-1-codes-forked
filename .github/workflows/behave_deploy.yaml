@@ -2,7 +2,7 @@ name: Acceptance Tests and Deployment Workflow
 
 on:
   push:
-    branches: [push]
+    branches: [main,belajar_10]
 
 jobs:
   deploy-report:
