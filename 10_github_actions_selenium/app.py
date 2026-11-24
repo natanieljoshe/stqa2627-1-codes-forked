@@ -43,7 +43,7 @@ def handle_pets():
     if request.method == 'GET':
         category = request.args.get('category')
         if category:
-            matching_pets = [pet for pet in pets.values() if pet['category'] == category]
+            matching_pets = [pet for pet in pets.values() if pet.get('category', '').lower() == category.lower()]
             return jsonify(matching_pets)
         
         return jsonify(list(pets.values()))
@@ -59,7 +59,9 @@ def update_pet(pet_id):
     
     data = request.get_json()
     pet = pets[pet_id]
-    pet.update(data)
+    for key, value in data.items():
+        if value not in ("", None):
+            pet[key] = value
     pets[pet_id] = pet
     return jsonify(pet), 200
 
