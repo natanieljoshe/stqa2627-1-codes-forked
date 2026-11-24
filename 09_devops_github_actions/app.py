@@ -37,7 +37,7 @@ def handle_pets():
     if request.method == 'GET':
         category = request.args.get('category')
         if category:
-            matching_pets = [pet for pet in pets.values() if pet['category'] == category]
+            matching_pets = [pet for pet in pets.values() if pet['category'].lower() == category.lower()]
             return jsonify(matching_pets)
         
         return jsonify(list(pets.values()))
@@ -48,7 +48,7 @@ def update_pet(pet_id):
     Updates an existing pet.
     """
     if pet_id not in pets:
-      return jsonify({"message": f"Pet with ID {pet_id} not found"}), 404
+        return jsonify({"message": f"Pet with ID {pet_id} not found"}), 404
     
     data = request.get_json()
     pet = pets[pet_id]
