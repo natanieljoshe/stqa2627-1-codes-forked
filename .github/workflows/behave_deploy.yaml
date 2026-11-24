@@ -2,11 +2,70 @@ name: Acceptance Tests and Deployment Workflow
 
 on:
   push:
-    branches: [main,belajar_10]
+    branches: [main, belajar_10]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   deploy-report:
     runs-on: ubuntu-latest
+
+    # Mengatur working directory default ke folder modul 10
+    # agar semua step (pip, python app.py, behave) dijalankan di dalam folder ini
+    defaults:
+      run:
+        working-directory: ./10_github_actions_selenium
+
     steps:
-      - name: Say Hello
-        run: echo "The workflow is working!"
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Start Flask App
+        run: |
+          # The '&' runs the app in the background
+          python app.py &
+          
+          # Wait for the server to be ready
+          echo "Waiting for server..."
+          for i in {1..10}; do
+            curl -s http://127.0.0.1:5000 > /dev/null && echo "Server is up!" && break
+            sleep 2
+          done
+
+      - name: Run Selenium Tests (Behave)
+        run: behave -f html-pretty -o index.html
+
+      - name: Upload Report
+        if: always()
+        uses: actions/upload-pages-artifact@v4
+        with:
+          # Mengarahkan path upload ke folder modul 10 tempat index.html dibuat
+          path: ./10_github_actions_selenium
+
+  deploy:
+    needs: deploy-report
+    if: always()
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
